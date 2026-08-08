@@ -33,20 +33,27 @@ def init_earth_engine():
     מאתחלת את Google Earth Engine באמצעות Service Account מתוך ה-Secrets של Streamlit.
     """
     try:
+        # בדיקה האם המפתח קיים ב-Secrets
         if "GEE_SERVICE_ACCOUNT_KEY" in st.secrets:
-            # טעינה מתוך Secrets בלייב
-            key_dict = json.loads(st.secrets["GEE_SERVICE_ACCOUNT_KEY"])
+            # המרה של המפתח למילון Python רגיל
+            key_dict = dict(st.secrets["GEE_SERVICE_ACCOUNT_KEY"])
+            
+            # ניקוי ותיקון תווי שורה חדשה במפתח הפרטי
+            if "private_key" in key_dict:
+                key_dict["private_key"] = key_dict["private_key"].replace("\\n", "\n")
+
             credentials = ee.ServiceAccountCredentials(
                 key_dict['client_email'],
                 key_data=json.dumps(key_dict)
             )
             ee.Initialize(credentials, project="hybrid-dolphin-318308")
+            return True
         else:
-            # ניסיון אתחול מקומי לטובת בדיקות
-            ee.Initialize(project="hybrid-dolphin-318308")
-        return True
+            st.error("⚠️ ה-Secret בשם 'GEE_SERVICE_ACCOUNT_KEY' לא נמצא בהגדרות ה-Secrets של Streamlit Cloud.")
+            return False
+            
     except Exception as e:
-        st.error(f"❌ שגיאה בהתחברות ל-Google Earth Engine: {e}")
+        st.error(f"❌ שגיאה באימות מול Google Earth Engine: {e}")
         return False
 
 
