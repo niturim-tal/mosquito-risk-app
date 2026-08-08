@@ -379,7 +379,7 @@ if run_analysis or selected_city:
 # חלוקת המסך לתצוגה (2 עמודות)
         col1, col2 = st.columns([2, 1])
 
-with col1:
+        with col1:
             st.subheader("🗺️ תצוגה מרחבית (GEE Map)")
             
             # 1. חישוב מרכז היישוב למודל להתמרכזות אוטומטית
