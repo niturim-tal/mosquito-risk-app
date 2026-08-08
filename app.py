@@ -379,33 +379,55 @@ if run_analysis or selected_city:
 # חלוקת המסך לתצוגה (2 עמודות)
         col1, col2 = st.columns([2, 1])
 
-        with col1:
+with col1:
             st.subheader("🗺️ תצוגה מרחבית (GEE Map)")
             
-            # יצירת מפת Folium נקייה
-            m = folium.Map(location=[31.0461, 34.8516], zoom_start=12)
+            # 1. חישוב מרכז היישוב למודל להתמרכזות אוטומטית
+            try:
+                centroid = geometry_to_clip.geometry().centroid().coordinates().getInfo()
+                center_lat, center_lon = centroid[1], centroid[0]
+            except Exception:
+                center_lat, center_lon = 31.0461, 34.8516
+
+            # 2. יצירת המפה ממוקדת על היישוב שנבחר
+            m = folium.Map(location=[center_lat, center_lon], zoom_start=12)
 
             risk_vis = {'min': 1, 'max': 4, 'palette': ['#00FF00', '#FFFF00', '#FFA500', '#FF0000']}
             temp_vis = {'min': 14.0, 'max': 38.0, 'palette': ['blue', 'cyan', 'green', 'yellow', 'orange', 'red']}
 
-            # חילוץ שכבת הסיכון מ-GEE והוספתה למפה
+            # 3. חילוץ שכבת הסיכון מ-GEE והוספתה למפה עם שקיפות קלה לקריאות
             risk_map_id = ee.Image(mosquito_risk_clipped).getMapId(risk_vis)
             folium.TileLayer(
                 tiles=risk_map_id['tile_fetcher'].url_format,
                 attr='Google Earth Engine',
                 name='Mosquito Risk Level (1-4)',
                 overlay=True,
-                control=True
+                control=True,
+                opacity=0.85
             ).add_to(m)
 
-            # חילוץ שכבת הטמפרטורה מ-GEE והוספתה למפה
+            # 4. חילוץ שכבת הטמפרטורה מ-GEE והוספתה למפה
             temp_map_id = ee.Image(weekly_mean_temp_clipped).getMapId(temp_vis)
             folium.TileLayer(
                 tiles=temp_map_id['tile_fetcher'].url_format,
                 attr='Google Earth Engine',
                 name='Weekly Mean Temp (C)',
                 overlay=True,
-                control=True
+                control=True,
+                opacity=0.7
+            ).add_to(m)
+
+            # 5. הוספת גבולות היישוב (Polygon) להבלטה במפה
+            city_geojson = geometry_to_clip.getInfo()
+            folium.GeoJson(
+                city_geojson,
+                name='גבולות יישוב',
+                style_function=lambda x: {
+                    'fillColor': 'transparent',
+                    'color': '#000000',
+                    'weight': 2,
+                    'dashArray': '4, 4'
+                }
             ).add_to(m)
 
             # הוספת פקד שליטה בשכבות
@@ -414,7 +436,7 @@ if run_analysis or selected_city:
             # רינדור המפה ב-Streamlit
             st_folium(m, width="100%", height=500)
 
-            # מקרא צבעים מעוצב מתחת למפה
+            # מקרא צבעים
             st.markdown("""
                 <div style="display: flex; justify-content: space-around; background-color: #f8f9fa; padding: 10px; border-radius: 8px; font-size: 13px; margin-top: 10px;">
                     <div>🟢 <b>1:</b> סיכון נמוך</div>
@@ -423,7 +445,6 @@ if run_analysis or selected_city:
                     <div>🔴 <b>4:</b> סיכון קריטי</div>
                 </div>
             """, unsafe_allow_html=True)
-
         with col2:
             st.subheader("📋 נתוני סיכום")
             
