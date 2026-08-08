@@ -379,10 +379,7 @@ if run_analysis or selected_city:
         # חלוקת המסך לתצוגה (2 עמודות)
         col1, col2 = st.columns([2, 1])
 
-        with col1:
-            st.subheader("🗺️ תצוגה מרחבית (GEE Map)")
-            
-        with col1:
+with col1:
             st.subheader("🗺️ תצוגה מרחבית (GEE Map)")
             
             # יצירת מפת Folium נקייה
@@ -415,10 +412,7 @@ if run_analysis or selected_city:
             folium.LayerControl().add_to(m)
 
             # רינדור המפה ב-Streamlit
-            st_folium(m, width="100%", height=500)
-            m.addLayer(mosquito_risk_clipped, risk_vis, 'Mosquito Risk Level (1-4)')
-            m.addLayer(weekly_mean_temp_clipped, temp_vis, 'Weekly Mean Temp (C)', False)
-            
+            st_folium(m, width="100%", height=500)            
             legend_keys = ['Low Risk (1)', 'Moderate Risk (2)', 'High Risk (3)', 'Critical Risk (4)']
             legend_colors = ['#00FF00', '#FFFF00', '#FFA500', '#FF0000']
             m.add_legend(title="Mosquito Risk Legend", keys=legend_keys, colors=legend_colors)
