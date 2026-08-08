@@ -8,7 +8,8 @@ import json
 from datetime import datetime, timedelta
 import pandas as pd
 import matplotlib.pyplot as plt
-import geemap.foliumap as geemap
+import geemap
+import folium
 from streamlit_folium import st_folium
 import warnings
 
@@ -375,13 +376,40 @@ if run_analysis or selected_city:
         with col1:
             st.subheader("🗺️ תצוגה מרחבית (GEE Map)")
             
-            # יצירת מפת Folium באמצעות geemap
-            m = geemap.Map(center=[31.0461, 34.8516], zoom=12)
-            m.center_object(geometry_to_clip, 12)
+with col1:
+            st.subheader("🗺️ תצוגה מרחבית (GEE Map)")
+            
+            # יצירת מפת Folium נקייה
+            m = folium.Map(location=[31.0461, 34.8516], zoom_start=12)
 
             risk_vis = {'min': 1, 'max': 4, 'palette': ['#00FF00', '#FFFF00', '#FFA500', '#FF0000']}
             temp_vis = {'min': 14.0, 'max': 38.0, 'palette': ['blue', 'cyan', 'green', 'yellow', 'orange', 'red']}
 
+            # חילוץ שכבת הסיכון מ-GEE והוספתה למפה
+            risk_map_id = ee.Image(mosquito_risk_clipped).getMapId(risk_vis)
+            folium.TileLayer(
+                tiles=risk_map_id['tile_fetcher'].url_format,
+                attr='Google Earth Engine',
+                name='Mosquito Risk Level (1-4)',
+                overlay=True,
+                control=True
+            ).add_to(m)
+
+            # חילוץ שכבת הטמפרטורה מ-GEE והוספתה למפה
+            temp_map_id = ee.Image(weekly_mean_temp_clipped).getMapId(temp_vis)
+            folium.TileLayer(
+                tiles=temp_map_id['tile_fetcher'].url_format,
+                attr='Google Earth Engine',
+                name='Weekly Mean Temp (C)',
+                overlay=True,
+                control=True
+            ).add_to(m)
+
+            # הוספת פקד שליטה בשכבות
+            folium.LayerControl().add_to(m)
+
+            # רינדור המפה ב-Streamlit
+            st_folium(m, width="100%", height=500)
             m.addLayer(mosquito_risk_clipped, risk_vis, 'Mosquito Risk Level (1-4)')
             m.addLayer(weekly_mean_temp_clipped, temp_vis, 'Weekly Mean Temp (C)', False)
             
