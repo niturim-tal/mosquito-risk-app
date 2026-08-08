@@ -376,7 +376,7 @@ if run_analysis or selected_city:
         with col1:
             st.subheader("🗺️ תצוגה מרחבית (GEE Map)")
             
-with col1:
+        with col1:
             st.subheader("🗺️ תצוגה מרחבית (GEE Map)")
             
             # יצירת מפת Folium נקייה
