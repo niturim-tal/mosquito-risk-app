@@ -376,7 +376,7 @@ if run_analysis or selected_city:
             reducer=ee.Reducer.max(), geometry=geometry_to_clip.geometry(), scale=250
         ).get('mosquito_risk_index').getInfo() or 1
 
-        # חלוקת המסך לתצוגה (2 עמודות)
+# חלוקת המסך לתצוגה (2 עמודות)
         col1, col2 = st.columns([2, 1])
 
         with col1:
@@ -412,13 +412,17 @@ if run_analysis or selected_city:
             folium.LayerControl().add_to(m)
 
             # רינדור המפה ב-Streamlit
-            st_folium(m, width="100%", height=500)            
-            legend_keys = ['Low Risk (1)', 'Moderate Risk (2)', 'High Risk (3)', 'Critical Risk (4)']
-            legend_colors = ['#00FF00', '#FFFF00', '#FFA500', '#FF0000']
-            m.add_legend(title="Mosquito Risk Legend", keys=legend_keys, colors=legend_colors)
-
-            # רינדור המפה ב-Streamlit
             st_folium(m, width="100%", height=500)
+
+            # מקרא צבעים מעוצב מתחת למפה
+            st.markdown("""
+                <div style="display: flex; justify-content: space-around; background-color: #f8f9fa; padding: 10px; border-radius: 8px; font-size: 13px; margin-top: 10px;">
+                    <div>🟢 <b>1:</b> סיכון נמוך</div>
+                    <div>🟡 <b>2:</b> סיכון בינוני</div>
+                    <div>🟠 <b>3:</b> סיכון גבוה</div>
+                    <div>🔴 <b>4:</b> סיכון קריטי</div>
+                </div>
+            """, unsafe_allow_html=True)
 
         with col2:
             st.subheader("📋 נתוני סיכום")
